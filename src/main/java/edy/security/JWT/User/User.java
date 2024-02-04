@@ -19,19 +19,19 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 //Añadimos que en la tabla user no se podra repetir el username
-@Table(name = "user", uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
+@Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
 public class User implements UserDetails {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Integer id;
     @Column(nullable = false)
     String username;
     String password;
-    String firstName;
     String lastName;
+    String firstName;
     String country;
     @Enumerated(EnumType.STRING)
-    Enum role;
+    Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -5,6 +5,10 @@ import edy.security.JWT.User.Role;
 import edy.security.JWT.User.User;
 import edy.security.JWT.User.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,14 +16,26 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
     public AuthResponse login(LoginRequest request) {
+        //Para hacer el login debemos usar una instancia del AuthenticationManager
+        //y llamar al metodo login
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(),
+                request.getPassword()));
+        //Generamos el tokem, para ello necesitaremos un objeto UserDetails
+        UserDetails user = userRepository.findByUsername(request.getUsername()).orElseThrow();
+        String token = jwtService.getToken(user);
+        return AuthResponse.builder()
+                .token(token)
+                .build();
     }
     public AuthResponse register(RegisterRequest request) {
         //Importante usar la Clase User creada por nosotros no la dada por Spring
         //La vamos a setear desde el RegisterRequest con el Builder
         User user = User.builder()
-                .username(request.getUserName())
-                .password(request.getPassword())
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .country(request.getCountry())

@@ -1,11 +1,15 @@
 package edy.security.JWT.Config;
 
+import edy.security.JWT.Jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -13,7 +17,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuthenticationProvider authProvider;
     //Filtros
     //Lo primero que hacemos es configurar o separar que endpoint seran publicos y cuales privados
     @Bean
@@ -27,9 +32,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authRequest ->
                         authRequest
                                 .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/h2-console/**").permitAll()
                                 .anyRequest().authenticated())
-                //creamos el formulario de login por defecto
-                .formLogin(withDefaults())
+                //Desactivamos las sesiones
+                .sessionManagement(sessionManager ->
+                        sessionManager
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                //Pasamos el Authentication Provider
+                .authenticationProvider(authProvider)
+                //Pasamos nuestro filtro JWT
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }
