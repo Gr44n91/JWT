@@ -32,7 +32,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authRequest ->
                         authRequest
                                 .requestMatchers("/auth/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
                                 .anyRequest().authenticated())
                 //Desactivamos las sesiones
                 .sessionManagement(sessionManager ->
